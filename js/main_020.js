@@ -1,6 +1,51 @@
 //レイヤ設定
 function setLayers() {
-	//########## レイヤー設定 ##########
+	var zoomlv = map.getZoom();
+
+	// 地番図【ポリゴン】
+        map.addLayer({
+       	          'id': 'Chibanzu-fill',
+               	  'type': 'fill',
+                  'source': 'Chibanzu',
+       	          'source-layer': 'chibanzu',
+               	  'paint': {
+                    "fill-color": "#0000ff",
+       	            "fill-opacity": 0
+                  },
+       	          'minzoom': 15,
+	          'maxzoom': 24,
+		});
+		if( zoomlv > 17) {
+			map.setPaintProperty('Chibanzu-fill', 'fill-opacity', 0);
+			}
+			else
+			{
+			map.setPaintProperty('Chibanzu-fill', 'fill-opacity', 0.2);
+			};
+
+	// 地番図【ライン】
+        map.addLayer({
+       	          'id': 'Chibanzu-line',
+               	  'type': 'line',
+                  'source': 'Chibanzu',
+       	          'source-layer': 'chibanzu',
+               	  'paint': {
+                    "line-color": "#0000ff",
+       	          },
+       	          'minzoom': 15,
+	          'maxzoom': 24,
+	});
+	if( zoomlv > 16) {
+		map.setPaintProperty('Chibanzu-line', 'line-opacity', 1.0);
+		}
+		else
+		{
+		map.setPaintProperty('Chibanzu-line', 'line-opacity', 0.1);
+	};
+
+	//地番表示
+	
+	
 	// PLATEAU
 	var hoveredStateId = null;
 	var hovered_PLATEAU_Flg = false;
@@ -134,13 +179,22 @@ map.on('load', async function () {
 	let protocol = new pmtiles.Protocol();
         maplibregl.addProtocol("pmtiles",protocol.tile);
 
-	//【ベクトル】（ＰＬＡＴＡＵＥ）
+	//【ベクトル】
+	//PLATEAU(IPFS)
 	let PMTILES_URL01 = "https://smb.optgeo.org/ipfs/QmTGRcYNmCmka5S8wARPaVz1S5mF3vvtx8SJKNJBThiZiV";
+	//地番図(Github)【ズームレベル１５のみ】
+	let PMTILES_URL02 = "https://office-shirado.github.io/Chibanzu/PMTiles/Chibanzu_26100_Kyoto_2023.pmtiles";
+	//地番図＜地番ポイント＞(Github)【ズームレベル１５のみ】
+	let PMTILES_URL03 = "Chibanzu_Point_26100_Kyoto_2023.pmtiles";
 
         const PMTiles01 = new pmtiles.PMTiles(PMTILES_URL01)
+        const PMTiles02 = new pmtiles.PMTiles(PMTILES_URL02)
+        const PMTiles03 = new pmtiles.PMTiles(PMTILES_URL03)
 
         // this is so we share one instance across the JS code and the map renderer
         protocol.add(PMTiles01);
+        protocol.add(PMTiles02);
+        protocol.add(PMTiles03);
 
         // ＰＬＡＴＥＡＵ
 	map.addSource('PLATEAU',{
@@ -149,6 +203,24 @@ map.on('load', async function () {
                 url: "pmtiles://" + PMTILES_URL01,
                 generateId: true,
                 attribution:"<a href='https://www.geospatial.jp/ckan/dataset/plateau/' target='_blank'>PLATEAU</a>"
+	});
+
+        // 地番図（京都市）
+	map.addSource('Chibanzu',{
+		type: "vector",
+		//office-shirado.comのMaps参照
+                url: "pmtiles://" + PMTILES_URL02,
+                generateId: true,
+                attribution:"<a href='https://data.city.kyoto.lg.jp/dataset/00652/' target='_blank'>京都市</a>"
+	});
+
+        // 地番図【地番】（京都市）
+	map.addSource('Chiban',{
+		type: "vector",
+		//office-shirado.comのMaps参照
+                url: "pmtiles://" + PMTILES_URL03,
+                generateId: true,
+                attribution:"<a href='https://data.city.kyoto.lg.jp/dataset/00652/' target='_blank'>京都市</a>"
 	});
 
 
