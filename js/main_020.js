@@ -45,7 +45,7 @@ function setLayers() {
 
 	//地番表示
         map.addLayer({
-		id': 'Chibanzu_Chiban',
+		'id': 'Chibanzu_Chiban',
 		'type': 'symbol',
 		'source': 'Chibanzu_Chiban',
 		'source-layer': 'chiban',
