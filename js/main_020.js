@@ -9,7 +9,7 @@ function setLayers() {
                   'source': 'Chibanzu',
        	          'source-layer': 'chibanzu',
                	  'paint': {
-                    "fill-color": "#ffffff",
+                    "fill-color": "#0000ff",
        	            "fill-opacity": 0
                   },
        	          'minzoom': 15,
@@ -30,7 +30,7 @@ function setLayers() {
                   'source': 'Chibanzu',
        	          'source-layer': 'chibanzu',
                	  'paint': {
-                    "line-color": "#ffffff",
+                    "line-color": "#0000ff",
        	          },
        	          'minzoom': 15,
 	          'maxzoom': 24,
@@ -53,8 +53,8 @@ function setLayers() {
 			'text-field': ['get', '地番'],
 		},
 		'paint': {
-			'text-color': 'rgba(255, 255, 255, 1)',
-			'text-halo-color': 'rgba(0,0,0,1)', // ラベルの外枠の色を白に設定
+			'text-color': 'rgba(0, 0, 255, 1)',
+			'text-halo-color': 'rgba(255,255,255,1)', // ラベルの外枠の色を白に設定
 			'text-halo-width': 1 // ラベルの外枠の幅を2に設定
 		},
 		'minzoom': 18,
@@ -94,6 +94,7 @@ function setLayers() {
 	map.on('mousemove', hover_ID, function (e) {
 	  if (e.features.length > 0) {
 	    hovered_PLATEAU_Flg = true;	//PLATEAUホバーフラグ
+	    PopUp_PLATEAU_Flg = true;		//PLATEAU ポップアップフラグ
 	    map.getCanvas().style.cursor = 'pointer'
 	    if (hoveredStateId) {
 	      map.setFeatureState(
@@ -111,7 +112,8 @@ function setLayers() {
 
 	map.on('mouseleave', hover_ID, function () {
 	  if (hoveredStateId) {
-	    hovered_PLATEAU_Flg = false;	//PLATEAUホバーフラグ
+	    hovered_PLATEAU_Flg = false;	//PLATEAU ホバーフラグ
+	    PopUp_PLATEAU_Flg = false;		//PLATEAU ポップアップフラグ
 	    map.getCanvas().style.cursor = ''
 	    map.setFeatureState(
 	      { source: sourceName, sourceLayer: sourceLayerName, id: hoveredStateId },
@@ -201,7 +203,7 @@ map.on('load', async function () {
 	//地番図(Github)【ズームレベル１５のみ】
 	let PMTILES_URL02 = "https://office-shirado.github.io/Chibanzu/PMTiles/Chibanzu_26100_Kyoto_2023.pmtiles";
 	//地番図＜地番ポイント＞(Github)【ズームレベル１５のみ】
-	let PMTILES_URL03 = "Chibanzu_Point_26100_Kyoto_2023.pmtiles";
+	let PMTILES_URL03 = "https://office-shirado.github.io/Chibanzu/PMTiles/Chibanzu_Point_26100_Kyoto_2023.pmtiles";
 
         const PMTiles01 = new pmtiles.PMTiles(PMTILES_URL01)
         const PMTiles02 = new pmtiles.PMTiles(PMTILES_URL02)
@@ -224,7 +226,7 @@ map.on('load', async function () {
         // 地番図（京都市）
 	map.addSource('Chibanzu',{
 		type: "vector",
-		//office-shirado.comのMaps参照
+		//Github参照
                 url: "pmtiles://" + PMTILES_URL02,
                 generateId: true,
                 attribution:"<a href='https://data.city.kyoto.lg.jp/dataset/00652/' target='_blank'>京都市</a>"
@@ -233,7 +235,6 @@ map.on('load', async function () {
         // 地番図【地番】（京都市）
 	map.addSource('Chibanzu_Chiban',{
 		type: "vector",
-		//office-shirado.comのMaps参照
                 url: "pmtiles://" + PMTILES_URL03,
                 generateId: true,
                 attribution:"<a href='https://data.city.kyoto.lg.jp/dataset/00652/' target='_blank'>京都市</a>"
@@ -348,6 +349,45 @@ map.addControl(new maplibregl.NavigationControl(), 'top-right');
 //#################マップコントロール（ツール）#################
 
 
+
+var PopUp_PLATEAU_Flg = false;
+//#################クリックイベント（地番図）#################
+//クリック属性表示（地番図）
+var popup_Chibanzu = new maplibregl.Popup();
+// 情報ポップアップ
+function Chibanzu_Popup_Fnc(e) {
+    var CB_Shozai = e.features[0].properties['所在'];
+    var CB_Chiban = e.features[0].properties['地番'];
+
+
+    if( CB_Shozai === undefined ) { CB_Shozai = "" };
+    if( CB_Chiban === undefined ) { CB_Chiban = "" };
+
+    var zoomlv = map.getZoom();
+
+    popup_Chibanzu.remove();	// 地番図のポップアップ削除
+    popup_Chibanzu = new maplibregl.Popup()
+        .setLngLat(e.lngLat)
+        .setHTML(
+			'<b>' + '<big>' + '【地番図】' +  '</big>' + '</b>' + '<br>' +
+			'<b>' + '<big>' + CB_Shozai + ' ' + CB_Chiban + '</big>' + '</b>' + '<br>' +
+			"所在：" +  CB_Shozai + '<br>' +
+			"地番：" + CB_Chiban + '<br>' +
+			"※市区町村のオープンデータです" + '<br>' +
+			'<hr>'+
+			"<a href='https://www.google.com/maps/@?api=1&map_action=pano&parameters&viewpoint=" + e.lngLat.lat + ",%20" + e.lngLat.lng + "' target='_blank'>ストリートビュー</a>　" +
+			"<a href='https://www.google.co.jp/maps?q=" + e.lngLat.lat + "," + e.lngLat.lng + "&hl=ja' target='_blank'>GoogleMap</a>　"
+	).addTo(map);
+}
+// クリックイベント
+map.on('click', 'Chibanzu-fill', (e) => {
+	if( PopUp_PLATEAU_Flg === false ){
+	  Chibanzu_Popup_Fnc(e);
+	};
+});
+//#################クリックイベント（地番図）#################
+
+
 //#################クリックイベント（ＰＬＡＴＥＡＵ）#################
 //クリック属性表示（PLATEAU）
 var popup_PLATEAU = new maplibregl.Popup();
@@ -400,12 +440,69 @@ function PLATEAU_Popup_Fnc(e){
 map.on('click', 'PLATEAU', (e) => {
 	PLATEAU_Popup_Fnc(e);
 });
+//#################クリックイベント（ＰＬＡＴＥＡＵ）#################
+//マウスイベント【ムーブスタート】
 map.on('movestart', function () {
 	//Popup削除
       popup_PLATEAU.remove();
+      popup_Chibanzu.remove();
 });
 
 
-//#################クリックイベント（ＰＬＡＴＥＡＵ）#################
+//マウスイベント【ドラッグ】
+map.on('drag', function () {
+	//グラッビングに変更（つかむ）
+	map.getCanvas().style.cursor = 'grabbing';
+});
 
+//マウスイベント【Chibanzu-fill上で動いている場合】
+map.on('mousemove', 'Chibanzu-fill', (e) => {
+	if (e.features.length > 0) {map.getCanvas().style.cursor = 'pointer'}	//ポインター
+				   else
+				   {map.getCanvas().style.cursor = ''};
+});
+
+//マウスアウトイベント（地番図）【元に戻す】
+map.on('mouseleave','Chibanzu-fill', function() {
+	map.getCanvas().style.cursor = '';
+});
+
+
+
+//マウスイベント【ムーブ】
+map.on('move', function () {
+	var zoomlv = map.getZoom();
+	var Pitch = map.getPitch();
+	if( Pitch > 30) {
+			map.setLayoutProperty("PLATEAU", "visibility" ,"visible");
+			}
+			else
+			map.setLayoutProperty("PLATEAU", "visibility" ,"none");
+			{
+	};
+
+	if( Pitch > 60) {
+			map.setLayoutProperty("Chibanzu_Chiban", "visibility" ,"none");
+			}
+			else
+			map.setLayoutProperty("Chibanzu_Chiban", "visibility" ,"visible");
+			{
+	};
+
+	if( zoomlv > 16) {
+			if (map.getLayer('Chibanzu-line'))		{map.setPaintProperty('Chibanzu-line', 'line-opacity', 1.0)};
+			}
+			else
+			{
+			if (map.getLayer('Chibanzu-line'))		{map.setPaintProperty('Chibanzu-line', 'line-opacity', 0.1)};
+			};
+
+	if( zoomlv > 17) {
+			if (map.getLayer('Chibanzu-fill'))		{map.setPaintProperty('Chibanzu-fill', 'fill-opacity', 0)};
+			}
+			else
+			{
+			if (map.getLayer('Chibanzu-fill'))		{map.setPaintProperty('Chibanzu-fill', 'fill-opacity', 0.2)};
+			};
+});
 
