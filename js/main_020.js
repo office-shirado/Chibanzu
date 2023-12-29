@@ -44,6 +44,22 @@ function setLayers() {
 	};
 
 	//地番表示
+        map.addLayer({
+		id': 'MOJ_Chiban',
+		'type': 'symbol',
+		'source': 'MOJ_Chiban',
+		'source-layer': 'chiban',
+		'layout': {
+			'text-field': ['get', '地番'],
+		},
+		'paint': {
+			'text-color': 'rgba(255, 0, 0, 1)',
+			'text-halo-color': 'rgba(255,255,255,1)', // ラベルの外枠の色を白に設定
+			'text-halo-width': 1 // ラベルの外枠の幅を2に設定
+		},
+		'minzoom': 18,
+		'maxzoom': 24,
+	});
 	
 	
 	// PLATEAU
