@@ -69,7 +69,8 @@ function setLayers() {
 //ジャンプ（現在地）
 function getLocation(getLatLng) {
 	map.flyTo({
-	  center: [getLatLng.coords.longitude, getLatLng.coords.latitude], 
+	  center: [135.75, 35.00], 
+//	  center: [getLatLng.coords.longitude, getLatLng.coords.latitude], 
 	  zoom: 17,
 	  speed: 2.5,
 	  curve: 1
